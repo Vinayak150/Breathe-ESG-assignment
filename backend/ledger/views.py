@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from rest_framework import mixins, status, viewsets
 from rest_framework.views import APIView
 from rest_framework.decorators import action
@@ -83,3 +84,26 @@ class IngestionView(APIView):
 
         response_status = status.HTTP_201_CREATED if not result["errors"] else status.HTTP_400_BAD_REQUEST
         return Response(result, status=response_status)
+
+
+# === TEMPORARY SEED ENDPOINT ===
+# Browser/curl-triggerable one-shot seed for environments without a shell (e.g. Render
+# free plan). It only reuses the existing load_mock_data management command and guards
+# against duplicate loads with an ORM existence check. Remove after assignment review.
+class LoadMockDataView(APIView):
+    """TEMPORARY SEED ENDPOINT — delete after assignment review."""
+
+    def post(self, request):
+        # TEMPORARY SEED ENDPOINT: refuse to run if any evidence already exists.
+        if RawIngestionPayload.objects.exists():
+            return Response(
+                {"success": False, "message": "Data already exists"},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # TEMPORARY SEED ENDPOINT: reuse the existing management command unchanged.
+        call_command("load_mock_data")
+        return Response(
+            {"success": True, "message": "Mock data loaded"},
+            status=status.HTTP_201_CREATED,
+        )
