@@ -1,0 +1,7 @@
+Django>=5.1
+djangorestframework
+django-cors-headers
+django-simple-history
+psycopg2-binary
+dj-database-url
+gunicorn

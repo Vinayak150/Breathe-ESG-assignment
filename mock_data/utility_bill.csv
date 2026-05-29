@@ -1,0 +1,4 @@
+meter_id,start_date,end_date,consumption_value,unit
+MTR-BLR-001,2024-01-14,2024-02-12,2900,kWh
+MTR-FRA-002,2024-02-10,2024-03-08,3300,kWh
+MTR-SIN-003,2024-06-20,2024-07-18,4100,kWh

@@ -1,0 +1,32 @@
+[
+  {
+    "trip_id": "TRIP-2001",
+    "origin_iata": "JFK",
+    "destination_iata": "LHR",
+    "cabin_class": "Economy"
+  },
+  {
+    "trip_id": "TRIP-2002",
+    "origin_iata": "LHR",
+    "destination_iata": "FRA",
+    "cabin_class": "Business"
+  },
+  {
+    "trip_id": "TRIP-2003",
+    "origin_iata": "FRA",
+    "destination_iata": "SIN",
+    "cabin_class": "Economy"
+  },
+  {
+    "trip_id": "TRIP-2004",
+    "origin_iata": "SIN",
+    "destination_iata": "DXB",
+    "cabin_class": "Business"
+  },
+  {
+    "trip_id": "TRIP-2005",
+    "origin_iata": "JFK",
+    "destination_iata": "XXX",
+    "cabin_class": "Economy"
+  }
+]

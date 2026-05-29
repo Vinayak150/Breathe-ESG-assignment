@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-breathe_esg}
+      POSTGRES_USER: ${POSTGRES_USER:-breathe_esg}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-breathe_esg}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  web:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60"
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-local-development-only-change-me}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0,web}
+      DATABASE_URL: ${DATABASE_URL:-postgres://breathe_esg:breathe_esg@db:5432/breathe_esg}
+      DATABASE_CONN_MAX_AGE: ${DATABASE_CONN_MAX_AGE:-60}
+      TIME_ZONE: ${TIME_ZONE:-UTC}
+    ports:
+      - "${DJANGO_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
