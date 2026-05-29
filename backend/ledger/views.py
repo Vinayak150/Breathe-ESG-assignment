@@ -94,15 +94,31 @@ class LoadMockDataView(APIView):
     """TEMPORARY SEED ENDPOINT — delete after assignment review."""
 
     def post(self, request):
-        # TEMPORARY SEED ENDPOINT: refuse to run if any evidence already exists.
-        if RawIngestionPayload.objects.exists():
+        # TEMPORARY SEED ENDPOINT: resolve the requesting tenant (fail-closed), matching
+        # every other endpoint, so seeding stays scoped to that tenant.
+        tenant_id = resolve_tenant_id(request)
+
+        # TEMPORARY SEED ENDPOINT: refuse to run if THIS tenant already has evidence.
+        if RawIngestionPayload.objects.filter(tenant_id=tenant_id).exists():
             return Response(
                 {"success": False, "message": "Data already exists"},
                 status=status.HTTP_409_CONFLICT,
             )
 
-        # TEMPORARY SEED ENDPOINT: reuse the existing management command unchanged.
-        call_command("load_mock_data")
+        # TEMPORARY SEED ENDPOINT: reuse the existing management command, seeding into the
+        # resolved tenant. call_command() raises CommandError on missing/empty mock files;
+        # catching it (per Django docs) returns JSON instead of an unhandled 500. The import
+        # is local and used immediately so it is never stripped as an unused import.
+        from django.core.management.base import CommandError
+
+        try:
+            call_command("load_mock_data", tenant_id=tenant_id)
+        except CommandError as exc:
+            return Response(
+                {"success": False, "message": f"Mock data load failed: {exc}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
         return Response(
             {"success": True, "message": "Mock data loaded"},
             status=status.HTTP_201_CREATED,
