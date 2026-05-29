@@ -27,4 +27,7 @@ USER django
 
 EXPOSE 8000
 
-CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "60"]
+# Run migrations on container start, then launch Gunicorn. This makes the image
+# self-bootstrapping on platforms (e.g. Render) where only the image CMD runs and there
+# is no separate pre-deploy/release phase. migrate is idempotent and safe on restarts.
+CMD ["sh", "-c", "python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60"]
