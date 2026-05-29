@@ -282,14 +282,23 @@ function RecordDrawer({ record, onClose, onCopy }) {
     if (!record?.raw_payload) return undefined
     let active = true
 
+    // No custom X-Tenant-ID header: a custom request header makes this a non-simple
+    // cross-origin request, triggering a CORS preflight the backend's default
+    // allowed-headers list rejects -> the browser surfaces "Network Error" even though
+    // the endpoint returns 200. The records list omits the header for the same reason;
+    // the backend resolves the default tenant when none is sent.
+    const url = `${API_URL}/api/raw-payloads/${record.raw_payload}/`
+    console.log('[RawPayload] request URL:', url)
+    console.log('[RawPayload] request params: none (simple GET, no custom headers)')
+
     axios
-      .get(`${API_URL}/api/raw-payloads/${record.raw_payload}/`, {
-        headers: record.tenant_id ? { 'X-Tenant-ID': record.tenant_id } : undefined,
-      })
+      .get(url)
       .then((response) => {
+        console.log('[RawPayload] response data:', response.data)
         if (active) setRawPayload(response.data)
       })
       .catch((err) => {
+        console.error('[RawPayload] full error object:', err)
         if (active) setRawError(err.response?.data?.detail || err.message || 'Unable to load evidence.')
       })
       .finally(() => {
